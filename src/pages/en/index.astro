@@ -1,29 +1,29 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from '../../layouts/Layout.astro';
 import { sanityClient } from 'sanity:client';
-import { getFeaturedPostsByLanguage } from '../lib/sanity-queries';
-import { t, formatDate } from '../lib/i18n';
+import { getFeaturedPostsByLanguage } from '../../lib/sanity-queries';
+import { t, formatDate } from '../../lib/i18n';
 
-// Récupérer les articles mis en avant en français
-const featuredPosts = await sanityClient.fetch(getFeaturedPostsByLanguage('fr'));
+// Récupérer les articles mis en avant en anglais
+const featuredPosts = await sanityClient.fetch(getFeaturedPostsByLanguage('en'));
 ---
 
-<Layout title="ChronoLoot - Accueil" description="Découvrez nos derniers articles et actualités">
+<Layout title="ChronoLoot - English" description="Discover our latest articles and news">
   <main class="container mx-auto px-4 py-8">
     <!-- Hero Section -->
     <section class="text-center py-16">
       <h1 class="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        Bienvenue sur ChronoLoot
+        Welcome to ChronoLoot
       </h1>
       <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-        Découvrez les derniers articles, insights et histoires de notre communauté.
+        Discover the latest articles, insights, and stories from our community.
       </p>
       <div class="flex gap-4 justify-center">
-        <a href="/blog" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-          Explorer le Blog
+        <a href="/en/blog" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+          Explore Blog
         </a>
-        <a href="/en" class="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-          English Version
+        <a href="/blog" class="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+          Version Française
         </a>
       </div>
     </section>
@@ -31,7 +31,7 @@ const featuredPosts = await sanityClient.fetch(getFeaturedPostsByLanguage('fr'))
     <!-- Featured Posts -->
     {featuredPosts.length > 0 && (
       <section class="py-16">
-        <h2 class="text-3xl font-bold mb-8 text-center">Articles mis en avant</h2>
+        <h2 class="text-3xl font-bold mb-8 text-center">Featured Articles</h2>
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {featuredPosts.map((post: any) => (
             <article class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -57,7 +57,7 @@ const featuredPosts = await sanityClient.fetch(getFeaturedPostsByLanguage('fr'))
                 
                 <h3 class="text-xl font-semibold mb-2">
                   <a 
-                    href={`/blog/${post.slug.current}`}
+                    href={`/en/blog/${post.slug.current}`}
                     class="hover:text-blue-600 transition-colors"
                   >
                     {post.title}
@@ -77,24 +77,24 @@ const featuredPosts = await sanityClient.fetch(getFeaturedPostsByLanguage('fr'))
                         class="w-6 h-6 rounded-full"
                       />
                     )}
-                    <span>{t('blog.by', 'fr')} {post.author?.name}</span>
+                    <span>{t('blog.by', 'en')} {post.author?.name}</span>
                   </div>
                   
                   <div class="flex items-center gap-4">
                     {post.readingTime && (
-                      <span>{post.readingTime} {t('blog.readingTime', 'fr')}</span>
+                      <span>{post.readingTime} {t('blog.readingTime', 'en')}</span>
                     )}
                     <time dateTime={post.publishedAt}>
-                      {formatDate(post.publishedAt, 'fr')}
+                      {formatDate(post.publishedAt, 'en')}
                     </time>
                   </div>
                 </div>
                 
                 <a 
-                  href={`/blog/${post.slug.current}`}
+                  href={`/en/blog/${post.slug.current}`}
                   class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"
                 >
-                  {t('blog.readMore', 'fr')} →
+                  {t('blog.readMore', 'en')} →
                 </a>
               </div>
             </article>
@@ -102,8 +102,8 @@ const featuredPosts = await sanityClient.fetch(getFeaturedPostsByLanguage('fr'))
         </div>
         
         <div class="text-center mt-8">
-          <a href="/blog" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-            Voir tous les articles
+          <a href="/en/blog" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            View All Articles
           </a>
         </div>
       </section>

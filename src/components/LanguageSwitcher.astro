@@ -1,0 +1,179 @@
+---
+import { languages, getLanguageFromUrl, getAlternateLanguageUrl, type Language } from '../lib/i18n';
+
+interface Props {
+  currentUrl: URL;
+}
+
+const { currentUrl } = Astro.props;
+const currentLanguage = getLanguageFromUrl(currentUrl);
+---
+
+<div class="language-switcher">
+  <button class="language-button" id="language-toggle">
+    <span class="current-lang">{currentLanguage.toUpperCase()}</span>
+    <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  
+  <div class="language-menu" id="language-menu">
+    {Object.entries(languages).map(([code, name]) => {
+      const isActive = code === currentLanguage;
+      const href = isActive ? '#' : getAlternateLanguageUrl(currentUrl, code as Language);
+      
+      return (
+        <a 
+          href={href}
+          class={`language-option ${isActive ? 'active' : ''}`}
+          data-lang={code}
+        >
+          <span class="lang-code">{code.toUpperCase()}</span>
+          <span class="lang-name">{name}</span>
+        </a>
+      );
+    })}
+  </div>
+</div>
+
+<style>
+  .language-switcher {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .language-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s ease;
+  }
+  
+  .language-button:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+  
+  .chevron {
+    transition: transform 0.2s ease;
+  }
+  
+  .language-button.open .chevron {
+    transform: rotate(180deg);
+  }
+  
+  .language-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.25rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-0.5rem);
+    transition: all 0.2s ease;
+    z-index: 50;
+  }
+  
+  .language-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  
+  .language-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .language-option:hover {
+    background: #f9fafb;
+  }
+  
+  .language-option.active {
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 500;
+  }
+  
+  .language-option:first-child {
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+  
+  .language-option:last-child {
+    border-radius: 0 0 0.5rem 0.5rem;
+  }
+  
+  .lang-code {
+    font-weight: 600;
+  }
+  
+  .lang-name {
+    color: #6b7280;
+    font-size: 0.8125rem;
+  }
+  
+  .language-option.active .lang-name {
+    color: #3b82f6;
+  }
+</style>
+
+<script>
+  // Gestion du menu déroulant
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('language-toggle');
+    const menu = document.getElementById('language-menu');
+    
+    if (!toggle || !menu) return;
+    
+    toggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const isOpen = menu.classList.contains('show');
+      
+      if (isOpen) {
+        menu.classList.remove('show');
+        toggle.classList.remove('open');
+      } else {
+        menu.classList.add('show');
+        toggle.classList.add('open');
+      }
+    });
+    
+    // Fermer le menu en cliquant ailleurs
+    document.addEventListener('click', (e) => {
+      if (!toggle.contains(e.target as Node) && !menu.contains(e.target as Node)) {
+        menu.classList.remove('show');
+        toggle.classList.remove('open');
+      }
+    });
+    
+    // Fermer le menu avec Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        menu.classList.remove('show');
+        toggle.classList.remove('open');
+      }
+    });
+  });
+</script>
+---

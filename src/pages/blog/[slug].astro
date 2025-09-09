@@ -1,0 +1,206 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { sanityClient } from 'sanity:client';
+import { getBlogPostWithTranslations, getBlogPostsByLanguage } from '../../lib/sanity-queries';
+import { t, formatDate } from '../../lib/i18n';
+
+export async function getStaticPaths() {
+  const posts = await sanityClient.fetch(getBlogPostsByLanguage('fr'));
+  
+  return posts.map((post: any) => ({
+    params: { slug: post.slug.current },
+  }));
+}
+
+// Récupérer les paramètres
+const { slug } = Astro.params;
+
+// Récupérer l'article avec ses traductions
+const post = await sanityClient.fetch(getBlogPostWithTranslations(slug!, 'fr'));
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+// Métadonnées SEO
+const pageTitle = post.seo?.metaTitle || post.title;
+const pageDescription = post.seo?.metaDescription || post.excerpt;
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <!-- Liens hreflang pour le SEO multilingue -->
+  <Fragment slot="head">
+    {post.translations?.map((translation: any) => (
+      <link 
+        rel="alternate" 
+        hreflang={translation.language} 
+        href={`${Astro.site}${translation.language === 'fr' ? '' : translation.language + '/'}blog/${translation.slug.current}`}
+      />
+    ))}
+    <link 
+      rel="alternate" 
+      hreflang="fr" 
+      href={`${Astro.site}blog/${post.slug.current}`}
+    />
+  </Fragment>
+
+  <main class="container mx-auto px-4 py-8">
+    <!-- Sélecteur de langue -->
+    {post.translations && post.translations.length > 0 && (
+      <div class="mb-6 flex gap-2">
+        <span class="text-sm text-gray-600">Disponible en :</span>
+        {post.translations.map((translation: any) => (
+          <a 
+            href={`/${translation.language === 'fr' ? '' : translation.language + '/'}blog/${translation.slug.current}`}
+            class={`text-sm px-2 py-1 rounded ${translation.language === 'fr' ? 'bg-blue-100 text-blue-800' : 'text-blue-600 hover:text-blue-800'}`}
+          >
+            {translation.language.toUpperCase()}
+          </a>
+        ))}
+      </div>
+    )}
+
+    <article class="max-w-4xl mx-auto">
+      <!-- En-tête de l'article -->
+      <header class="mb-8">
+        <div class="flex flex-wrap gap-2 mb-4">
+          {post.categories?.map((category: any) => (
+            <span 
+              class="px-3 py-1 text-sm rounded-full text-white"
+              style={`background-color: ${category.color || '#3B82F6'}`}
+            >
+              {category.title}
+            </span>
+          ))}
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">{post.title}</h1>
+        
+        {post.excerpt && (
+          <p class="text-xl text-gray-600 mb-6">{post.excerpt}</p>
+        )}
+
+        <div class="flex items-center justify-between border-b pb-6 mb-8">
+          <div class="flex items-center gap-4">
+            {post.author?.image && (
+              <img 
+                src={post.author.image.asset.url} 
+                alt={post.author.name}
+                class="w-12 h-12 rounded-full"
+              />
+            )}
+            <div>
+              <p class="font-medium">{post.author?.name}</p>
+              <p class="text-sm text-gray-600">
+                {t('blog.publishedOn', 'fr')} {formatDate(post.publishedAt, 'fr')}
+              </p>
+            </div>
+          </div>
+          
+          {post.readingTime && (
+            <span class="text-sm text-gray-600">
+              {post.readingTime} {t('blog.readingTime', 'fr')}
+            </span>
+          )}
+        </div>
+      </header>
+
+      <!-- Image principale -->
+      {post.mainImage && (
+        <div class="mb-8">
+          <img 
+            src={post.mainImage.asset.url} 
+            alt={post.mainImage.alt || post.title}
+            class="w-full rounded-lg shadow-lg"
+          />
+          {post.mainImage.caption && (
+            <p class="text-sm text-gray-600 mt-2 text-center italic">
+              {post.mainImage.caption}
+            </p>
+          )}
+        </div>
+      )}
+
+      <!-- Contenu de l'article -->
+      <div class="prose prose-lg max-w-none mb-8">
+        <!-- Ici vous devrez implémenter le rendu du contenu blockContent -->
+        <!-- Pour l'instant, un placeholder -->
+        <div class="bg-gray-100 p-4 rounded">
+          <p><strong>Note:</strong> Le rendu du contenu riche (blockContent) nécessite un composant dédié.</p>
+          <p>Vous pouvez utiliser @portabletext/react ou créer votre propre renderer.</p>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      {post.tags && post.tags.length > 0 && (
+        <div class="mb-8">
+          <h3 class="text-lg font-semibold mb-3">{t('blog.tags', 'fr')}</h3>
+          <div class="flex flex-wrap gap-2">
+            {post.tags.map((tag: string) => (
+              <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Informations sur l'auteur -->
+      {post.author?.bio && (
+        <div class="border-t pt-8 mt-8">
+          <div class="flex items-start gap-4">
+            {post.author.image && (
+              <img 
+                src={post.author.image.asset.url} 
+                alt={post.author.name}
+                class="w-16 h-16 rounded-full"
+              />
+            )}
+            <div>
+              <h3 class="text-lg font-semibold mb-2">{post.author.name}</h3>
+              <p class="text-gray-600">{post.author.bio}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </article>
+  </main>
+</Layout>
+
+<style>
+  .container {
+    max-width: 1200px;
+  }
+  
+  .prose {
+    color: #374151;
+    line-height: 1.75;
+  }
+  
+  .prose h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    margin-top: 2em;
+    margin-bottom: 1em;
+  }
+  
+  .prose h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+  }
+  
+  .prose p {
+    margin-bottom: 1.25em;
+  }
+  
+  .prose ul, .prose ol {
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+  }
+  
+  .prose li {
+    margin-bottom: 0.5em;
+  }
+</style>

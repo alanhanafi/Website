@@ -1,14 +1,51 @@
+---
+import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import { getLanguageFromUrl } from '../lib/i18n';
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title = 'ChronoLoot', description = 'Découvrez nos derniers articles et actualités' } = Astro.props;
+const language = getLanguageFromUrl(Astro.url);
+---
+
 <!doctype html>
-<html lang="en">
+<html lang={language}>
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<slot name="head" />
 	</head>
 	<body>
+		<header class="border-b bg-white shadow-sm">
+			<div class="container mx-auto px-4 py-4 flex justify-between items-center">
+				<a href={language === 'fr' ? '/' : `/${language}/`} class="text-2xl font-bold text-blue-600">
+					ChronoLoot
+				</a>
+				
+				<nav class="flex items-center gap-6">
+					<a href={language === 'fr' ? '/blog' : `/${language}/blog`} class="hover:text-blue-600 transition-colors">
+						Blog
+					</a>
+					<LanguageSwitcher currentUrl={Astro.url} />
+				</nav>
+			</div>
+		</header>
+		
 		<slot />
+		
+		<footer class="bg-gray-50 border-t mt-16">
+			<div class="container mx-auto px-4 py-8 text-center text-gray-600">
+				<p>&copy; 2024 ChronoLoot. Tous droits réservés.</p>
+			</div>
+		</footer>
 	</body>
 </html>
 
