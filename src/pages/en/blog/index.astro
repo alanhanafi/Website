@@ -1,0 +1,97 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { sanityClient } from 'sanity:client';
+import { getBlogPostsByLanguage } from '../../../lib/sanity-queries';
+import { t, formatDate } from '../../../lib/i18n';
+
+// Récupérer les articles en anglais
+const posts = await sanityClient.fetch(getBlogPostsByLanguage('en'));
+
+const pageTitle = t('blog.title', 'en');
+const pageDescription = t('seo.defaultDescription', 'en');
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8">{pageTitle}</h1>
+    
+    {posts.length === 0 ? (
+      <p class="text-gray-600">{t('blog.noPostsFound', 'en')}</p>
+    ) : (
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {posts.map((post: any) => (
+          <article class="bg-white rounded-lg shadow-md overflow-hidden">
+            {post.mainImage && (
+              <img 
+                src={post.mainImage.asset.url} 
+                alt={post.mainImage.alt || post.title}
+                class="w-full h-48 object-cover"
+              />
+            )}
+            
+            <div class="p-6">
+              <div class="flex flex-wrap gap-2 mb-3">
+                {post.categories?.map((category: any) => (
+                  <span 
+                    class="px-2 py-1 text-xs rounded-full text-white"
+                    style={`background-color: ${category.color || '#3B82F6'}`}
+                  >
+                    {category.title}
+                  </span>
+                ))}
+              </div>
+              
+              <h2 class="text-xl font-semibold mb-2">
+                <a 
+                  href={`/en/blog/${post.slug.current}`}
+                  class="hover:text-blue-600 transition-colors"
+                >
+                  {post.title}
+                </a>
+              </h2>
+              
+              {post.excerpt && (
+                <p class="text-gray-600 mb-4">{post.excerpt}</p>
+              )}
+              
+              <div class="flex items-center justify-between text-sm text-gray-500">
+                <div class="flex items-center gap-2">
+                  {post.author?.image && (
+                    <img 
+                      src={post.author.image.asset.url} 
+                      alt={post.author.name}
+                      class="w-6 h-6 rounded-full"
+                    />
+                  )}
+                  <span>{t('blog.by', 'en')} {post.author?.name}</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                  {post.readingTime && (
+                    <span>{post.readingTime} {t('blog.readingTime', 'en')}</span>
+                  )}
+                  <time dateTime={post.publishedAt}>
+                    {formatDate(post.publishedAt, 'en')}
+                  </time>
+                </div>
+              </div>
+              
+              <a 
+                href={`/en/blog/${post.slug.current}`}
+                class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"
+              >
+                {t('blog.readMore', 'en')} →
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </main>
+</Layout>
+
+<style>
+  .container {
+    max-width: 1200px;
+  }
+</style>
